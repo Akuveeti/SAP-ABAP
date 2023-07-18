@@ -1,0 +1,81 @@
+*&---------------------------------------------------------------------*
+*& Report Z_BILLING_TASK3
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT Z_BILLING_TASK3.
+
+
+
+TYPES :BEGIN OF ty_zxvbrk,
+         vbeln TYPE zxvbrk-vbeln,
+         kunrg TYPE zxvbrk-kunrg,
+         fkdat TYPE zxvbrk-fkdat,
+         netwr TYPE zxvbrk-netwr,
+       END OF ty_zxvbrk.
+
+
+TYPES : BEGIN OF ty_zxvbrp,
+          posnr TYPE zxvbrp-posnr,
+          matnr TYPE zxvbrp-matnr,
+          fkimg TYPE zxvbrp-fkimg,
+          vrkme TYPE zxvbrp-vrkme,
+          netwr TYPE zxvbrp-netwr,
+
+        END OF ty_zxvbrp.
+
+        TYPES : BEGIN OF ty_t006a,
+          msehi TYPE t006a-msehi,
+          mseht TYPE t006a-mseht,
+        END OF ty_t006a.
+
+
+DATA : it_zxvbrk TYPE TABLE OF ty_zxvbrk,
+       wa_zxvbrk LIKE LINE OF it_zxvbrk,
+       it_zxvbrp    TYPE TABLE OF ty_zxvbrp,
+       wa_zxvbrp   LIKE LINE OF it_zxvbrp,
+       v_mseht     TYPE t006a-mseht,
+       v_name1     TYPE kna1-name1,
+       it_t006a    TYPE TABLE OF ty_t006a,
+       wa_t006a    LIKE LINE OF it_t006a.
+
+
+
+
+DATA : p_vbeln TYPE zxvbrk-vbeln.
+SELECT-OPTIONS s_vbeln FOR p_vbeln.
+SELECT vbeln  kunrg fkdat netwr FROM zxvbrk INTO TABLE it_zxvbrk WHERE vbeln IN s_vbeln[].
+
+
+
+
+LOOP AT it_zxvbrk into wa_zxvbrk.
+  READ TABLE it_zxvbrk INTO wa_zxvbrk WITH KEY vbeln = wa_zxvbrk-vbeln.
+  SELECT SINGLE name1 FROM kna1 INTO v_name1 WHERE kunnr EQ wa_zxvbrk-kunrg.
+  WRITE : / 'Doc No :', wa_zxvbrk-vbeln,
+          / 'Date : ', wa_zxvbrk-fkdat,
+          / 'Payer :', v_name1,
+          / 'NetValue :',wa_zxvbrk-netwr LEFT-JUSTIFIED.
+
+
+
+  WRITE : / 'Item',
+  20 'Material',
+  40 'Qty',
+  60 'UoM',
+  80 'Netvalue'.
+
+
+
+  SELECT posnr matnr  fkimg vrkme netwr  FROM zxvbrp  INTO TABLE it_zxvbrp  WHERE vbeln EQ wa_zxvbrk-vbeln.
+
+  SELECT msehi mseht FROM t006a INTO TABLE it_t006a FOR ALL ENTRIES IN it_zxvbrp WHERE spras EQ sy-langu AND msehi EQ it_zxvbrp-vrkme.
+  LOOP AT it_zxvbrp INTO wa_zxvbrp.
+    READ TABLE it_t006a INTO wa_t006a WITH KEY msehi = wa_zxvbrp-vrkme.
+    WRITE : / wa_zxvbrp-posnr ,
+    20 wa_zxvbrp-matnr,
+    30 wa_zxvbrp-fkimg,
+    60 wa_t006a-mseht,
+    80 wa_zxvbrp-netwr LEFT-JUSTIFIED.
+  ENDLOOP.
+ENDLOOP.

@@ -1,0 +1,77 @@
+*&----------------------------------------------------------1-----------*
+*& Report Z_SCREEN_TASK4
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT z_screen_task4 NO STANDARD PAGE HEADING LINE-COUNT 2(1).
+
+INITIALIZATION.
+
+
+  TYPES :BEGIN OF ty_zxvbrk,
+           vbeln TYPE zxvbrk-vbeln,
+           kunrg TYPE zxvbrk-vbeln,
+           fkdat TYPE zxvbrk-fkdat,
+           netwr TYPE zxvbrk-netwr,
+         END OF ty_zxvbrk.
+
+  TYPES : BEGIN OF ty_zxvbrp,
+
+            vbeln TYPE zxvbrp-vbeln,
+            posnr TYPE zxvbrp-posnr,
+            matnr TYPE zxvbrp-matnr,
+            fkimg TYPE zxvbrp-fkimg,
+            netwr TYPE zxvbrp-netwr,
+
+          END OF ty_zxvbrp.
+
+
+
+  DATA : it_vbrk TYPE TABLE OF ty_zxvbrk,
+         wa_vbrk LIKE LINE OF it_vbrk,
+         it_vbrp TYPE TABLE OF ty_zxvbrp,
+         wa_vbrp LIKE LINE OF it_vbrp.
+
+
+  DATA V_name TYPE kna1-name1.
+
+START-OF-SELECTION.
+
+  SELECT-OPTIONS s_vbeln FOR wa_vbrk-vbeln.
+
+  SELECT vbeln kunrg fkdat netwr FROM  zxvbrk INTO TABLE it_vbrk WHERE vbeln IN s_vbeln[].
+  SELECT vbeln posnr matnr fkimg  FROM zxvbrp INTO  TABLE it_vbrp WHERE vbeln IN s_vbeln[].
+
+TOP-OF-PAGE.
+  WRITE 'ust global'.
+ULINE.
+
+END-OF-PAGE.
+  WRITE : / 'this is end of statement'.
+
+
+
+END-OF-SELECTION.
+
+  SET PF-STATUS 'TASK'.
+  LOOP AT it_vbrp INTO wa_vbrp.
+    READ  TABLE it_vbrk INTO wa_vbrk WITH KEY vbeln = wa_vbrp-vbeln.
+    SELECT SINGLE name1 FROM kna1 INTO V_name WHERE kunnr = wa_vbrk-kunrg.
+     AT NEW vbeln.
+
+      WRITE :/ 'doc no :',wa_vbrk-vbeln,
+              'payer :',wa_vbrk-kunrg,
+              'date :',wa_vbrk-fkdat,
+              'netwr :',wa_vbrk-netwr.
+
+    ENDAT.
+    HIDE wa_vbrk-vbeln.
+     SKIP.
+    CLEAR wa_vbrk.
+ ENDLOOP.
+ clear wa_vbrk.
+AT LINE-SELECTION.
+ WRITE : / wa_vbrp-posnr ,
+20 wa_vbrp-matnr,
+30 wa_vbrp-fkimg,
+60 wa_vbrp-netwr.

@@ -1,0 +1,32 @@
+*&---------------------------------------------------------------------*
+*& Report ZPREM_WEEK2
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT ZPREM_WEEK2.
+
+data V_kunnr type kunnr.
+data itab_kna1 type Zprem_t_kna1.
+data wa_kna1 like line of itab_kna1.
+select-options s_kunnr for V_kunnr.
+perform get_det.
+perform get_dply.
+
+
+start-of-selection.
+form get_det.
+  call function 'ZPREM_FNMODULE'
+  exporting
+    s_kunnr = s_kunnr[]
+    importing
+      it_kna1 = itab_kna1.
+
+  endform.
+
+  form get_dply.
+    loop at itab_kna1 into wa_kna1.
+      write : / wa_kna1-name1,
+          wa_kna1-name2,
+          wa_kna1-land1.
+endloop.
+endform.

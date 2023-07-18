@@ -1,0 +1,40 @@
+*&---------------------------------------------------------------------*
+*& Report ZBILLING_REWRITE
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zbilling_rewrite.
+
+
+DATA : it_vbrk TYPE TABLE OF zxvbrk,
+       wa_vbrk LIKE LINE OF it_vbrk,
+       it_vbrp TYPE TABLE OF zxvbrp,
+       wa_vbrp LIKE LINE OF it_vbrp.
+DATA v_name TYPE kna1-name1.
+
+SELECT-OPTIONS s_vbeln FOR wa_vbrk-vbeln.
+
+SELECT * FROM zxvbrk INTO TABLE it_vbrk WHERE vbeln IN s_vbeln[].
+SELECT * FROM zxvbrp INTO TABLE it_vbrp WHERE vbeln IN s_vbeln[].
+SORT it_vbrp BY vbeln posnr.
+LOOP AT it_vbrp INTO wa_vbrp.
+  READ TABLE it_vbrk INTO wa_vbrk WITH KEY vbeln = wa_vbrp-vbeln.
+  SELECT SINGLE name1 FROM kna1 INTO V_name WHERE kunnr = wa_vbrk-kunrg.
+  AT NEW  vbeln.
+
+    WRITE :/ wa_vbrk-vbeln,
+                wa_vbrk-kunrg,
+                / 'Payer :', v_name,
+                wa_vbrk-fkdat,
+                wa_vbrk-netwr.
+  ENDAT.
+
+
+
+  WRITE:/ wa_vbrp-posnr,
+          wa_vbrp-matnr,
+          wa_vbrp-fkimg,
+          wa_vbrp-vrkme,
+          wa_vbrp-netwr.
+  CLEAR : wa_vbrp ,wa_vbrk.
+ENDLOOP.
